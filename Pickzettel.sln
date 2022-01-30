@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31105.61
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pickzettel", "Pickzettel\Pickzettel.csproj", "{DE6374EC-128F-42A2-9517-EA63EBE8BEF1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE6374EC-128F-42A2-9517-EA63EBE8BEF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE6374EC-128F-42A2-9517-EA63EBE8BEF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE6374EC-128F-42A2-9517-EA63EBE8BEF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE6374EC-128F-42A2-9517-EA63EBE8BEF1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {333E7CC7-7157-41F2-9014-859481732686}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,53 @@
+@import url('bootstrap/bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;   
+}
+
+td {
+    padding: 10px !important;    
+}
+tr {
+    border-style: solid;
+    border-color: black;
+    border-width: thin;
+}
+.secondrow {
+    border-top: none !important;   
+    height:30px;
+    margin:0px;
+    padding:0px;
+}
+.firstrow{
+    border-bottom:none;
+}
+
+.mybezeichnung{
+    font-size:70%;
+    min-width:150px;
+}
+
+.bigfont {
+    font-size: 100%;
+}
+
+.bigfontXL {
+    font-size: 170%;
+}
+
+.posborder {
+      border-right:solid;
+}
+.arBorder {
+    border-style: solid;
+    border-bottom:none;
+    border-left:none;
+}
+.myBorder {
+    border-style: solid;
+    border-bottom: none;
+}
+.bezBorder {
+    border-style: solid;
+    border-top: none;
+}

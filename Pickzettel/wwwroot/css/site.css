@@ -1,0 +1,366 @@
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+html, body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
+}
+
+a, .btn-link {
+    color: #0366d6;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #1b6ec2;
+    border-color: #1861ac;
+}
+
+.content {
+    padding-top: 1.1rem;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid red;
+}
+
+.validation-message {
+    color: red;
+}
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.logo-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-top: -6px;
+}
+.printbutton {
+    width: 150px;
+}
+
+.lastUpdate {
+    width: 1152px;
+    height: 40px;
+    padding: 0px;
+    margin-top: 20px;
+}
+
+
+/*Pick Zettel*/
+/*///////////////////*/
+/*///////////////////*/
+.table-borderless td, .table-borderless th, .table-borderless thead th {
+    width: 10%;
+    padding: 6px;
+}
+
+.mybutton {
+    width: 100px;
+    height: 70px;
+}
+
+.header {
+    width: 100px;
+    height: 50px;
+    background-color: gold;
+    border-color: gold;
+    margin-bottom: 10px;
+}
+
+    .header:hover {
+        background-color: gold;
+        border-color: gold;
+    }
+
+    .header:focus {
+        box-shadow: none;
+    }
+
+.headertype {
+    width: 100px;
+    height: 50px;
+    background-color: #05a680;
+    border-color: #05a680;
+    color: white;
+    margin-bottom: 10px;
+}
+
+    .headertype:hover {
+        background-color: #05a680;
+        border-color: #05a680;
+        color: white;
+    }
+
+    .headertype:focus {
+        box-shadow: none;
+    }
+
+.typerow {
+    width: 100px;
+    height: 70px;
+    background-color: #05a680;
+    border-color: #05a680;
+    color: white;
+}
+
+    .typerow:hover {
+        background-color: #05a680;
+        border-color: #05a680;
+        color: white;
+    }
+
+    .typerow:focus {
+        box-shadow: none;
+    }
+
+td.mybutton {
+    width: 5%;
+    height: 5%;
+}
+
+.table {
+    width: 50%;
+}
+
+
+
+
+/*Progress Circle*/
+/*///////////////////*/
+/*///////////////////*/
+.mycircle {
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    margin: auto;
+    padding: 20px;
+    width: 80%;
+    background-color: transparent;
+    border: none;
+    top: 30%;
+}
+
+.thecircle {
+    width: 150px;
+    height: 150px;
+}
+
+/*Data Grid*/
+/*///////////////////*/
+/*///////////////////*/
+.rz-datatable-even td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 6px;
+    padding-right: 6px;
+    background-color: #eaf8e6;
+}
+
+.rz-datatable-odd td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.rz-datatable-data td .rz-cell-data {
+    font-size: 11px;
+}
+
+
+
+.mygrid {
+     /*min-width:90%;*/
+    /* overflow-y: auto;*/
+}
+
+
+
+.rz-datatable-thead th .rz-column-title {
+    font-weight: 600;
+}
+
+
+.mygrid .rz-datatable-thead th {
+    background-color: #272b28;
+    color: floralwhite;
+    min-width:35px;
+    
+}
+
+.mygrid .rz-datatable-thead th .rz-column-title {
+        color: white;
+}
+
+
+
+.searchedGrid {
+    max-width: 75%;
+    margin-bottom: 50px;
+}
+
+    .searchedGrid .rz-datatable-scrollable-body {
+        overflow: auto;
+        border-top: none;
+        -webkit-box-flex: 1;
+        -ms-flex: auto;
+        flex: auto;
+        border-bottom-right-radius: 4px;
+        border-bottom-left-radius: 4px;
+        max-height: 20vh;
+    }
+
+    .searchedGrid .rz-datatable-thead th {
+        background-color: rgba(204, 41, 0, 0.5);
+       
+    }
+
+        .searchedGrid .rz-datatable-thead th .rz-column-title {
+            color: black;
+        }
+
+    .searchedGrid .rz-datatable-even td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        padding-left: 6px;
+        padding-right: 6px;
+        background-color: rgba(230, 221, 179, 0.7);
+    }
+
+    .searchedGrid .rz-datatable-odd td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        padding-left: 6px;
+        padding-right: 6px;
+        background-color: rgb(230, 221, 179);
+    }
+
+
+.selectedGrid .rz-datatable-scrollable-body {
+    overflow: auto;
+    border-top: none;
+    -webkit-box-flex: 1;
+    -ms-flex: auto;
+    flex: auto;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    max-height: 20vh;
+}
+
+    .selectedGrid .rz-datatable-thead th {
+        background-color: #f79646;
+    }
+
+.mygrid .rz-datatable-scrollable-body {
+    overflow: auto;
+    border-top: none;
+    -webkit-box-flex: 1;
+    -ms-flex: auto;
+    flex: auto;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    max-height: 50vh;
+}
+
+.rz-datatable-scrollable-header {
+    padding-right: 0px !important;
+}
+.rz-cell-filter label {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-flex: 1;
+    -ms-flex: auto;
+    flex: auto;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    height:20px !important;
+    margin:0px !important;
+    padding:0px !important;
+}
+
+
+/*Result Dialog*/
+.resultmodal {
+    display: block;
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+/* Modal Content */
+.result-content {
+
+   
+    overflow:auto;
+    max-height:40vh;
+}
+.outer-content {
+    background-color: #d4faf2;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%;
+    border-radius: 15px;
+}
+.material-icons {
+    color: red;
+    vertical-align: bottom;
+    margin-right:10px;
+}
+.successicon{
+    color:green;
+}
+
+textarea:focus,
+input:focus
+ {
+    outline: 0px !important;
+    -webkit-appearance: none;
+    box-shadow: none !important;
+}
+
+.inactiveLink {
+    pointer-events: none;
+    cursor: default;
+}

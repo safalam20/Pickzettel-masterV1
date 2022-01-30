@@ -1,0 +1,403 @@
+﻿@page "/"
+@page "/pick"
+
+@implements IDisposable
+@using Pickzettel.Services
+@using Pickzettel.Data
+@using Pickzettel.Models
+@using Microsoft.Extensions.Logging
+@using System.Timers
+@inject PdfGenerator generator
+@inject IPickzettelRepository repo
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject IJSRuntime JSRuntime
+@inject ILogger<PickZettel> Logger;
+
+<div @onmousemove="FollowMouse">
+    <nav class="navbar navbar-light justify-content-between" style="background-color: #e3f2fd;">
+        <button type="button" class="btn btn-secondary btn-lg" @onclick="()=>updateData()"><RadzenIcon Icon="autorenew" /></button>
+        <p class="font-italic font-weight-bold mt-2 ml-5">@username</p>
+        <p class="font-italic font-weight-bold ml-auto mr-4 mt-2">
+            V102 - Last Update:
+            <span class="text-danger"> @lastUpdate.ToString("HH:mm:ss")</span>
+        </p>
+        <a href="#" class="inactiveLink">
+            <img src="images/tire.jpg" class="logo-image img-fluid ml-auto" alt="">
+        </a>
+    </nav>
+
+    @if (PickzettelForms == null)
+    {
+        <p>
+            <em>Loading...</em>
+        </p>
+    }
+    else
+    {
+        <table class="table table-borderless mytable mx-auto mt-3">
+            <thead>
+                <tr class="zettelrow">
+                    <th>
+                        <button type="button" class="btn header p-0" style="line-height:120%;">Auftrag zu<br />erfassen</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn header">Vorkasse</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn header p-0" style="line-height:120%;">Nicht<br />Freigegeben</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn headertype mr-3">Type</button>
+                    </th>
+
+                    <th>
+                        <button type="button" class="btn header" style="line-height:120%;">Offen<br />B2B</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn header" style="line-height:120%;">Offen<br />B2C</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn header" style="line-height:120%;">Offen<br />Kondolot</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn header mr-3" style="line-height:120%;">Zufuhr/<br />Pallete</button>
+                    </th>
+
+                    <th>
+                        <button type="button" class="btn header">Pickstatus</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn header mr-3">Problem</button>
+                    </th>
+
+                    <th>
+                        <button type="button" class="btn header">Verpackt</button>
+                    </th>
+                    <th>
+                        <button type="button" class="btn header">Aufgeladen</button>
+                    </th>
+                </tr>
+            </thead>
+            @foreach (Pickzettel_Form pick in PickzettelForms)
+            {
+                <tr class="zettelrow">
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row, 9)">
+                            @pick.S_09<br />@if (pick.R_09 > 0)
+                            {@String.Concat("(" + @pick.R_09 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,10)">
+                            @pick.S_10<br />@if (pick.R_10 > 0)
+                            {@String.Concat("(" + @pick.R_10 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,11)">
+                            @pick.S_11<br />@if (pick.R_11 > 0)
+                            {@String.Concat("(" + @pick.R_11 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn typerow mr-3 p-0">@pick.S_RowName</button>
+                    </td>
+
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,12)">
+                            @pick.S_12<br />@if (pick.R_12 > 0)
+                            {@String.Concat("(" + @pick.R_12 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,13)">
+                            @pick.S_13<br />@if (pick.R_13 > 0)
+                            {@String.Concat("(" + @pick.R_13 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,14)">
+                            @pick.S_14<br />@if (pick.R_14 > 0)
+                            {@String.Concat("(" + @pick.R_14 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,15)">
+                            @pick.S_15<br />@if (pick.R_15 > 0)
+                            {@String.Concat("(" + @pick.R_15 + ")");
+                        }
+                        </button>
+                    </td>
+
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,21)">
+                            @pick.S_21<br />@if (pick.R_21 > 0)
+                            {@String.Concat("(" + @pick.R_21 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,22)">
+                            @pick.S_22<br />@if (pick.R_22 > 0)
+                            {@String.Concat("(" + @pick.R_22 + ")");
+                        }
+                        </button>
+                    </td>
+
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,23)">
+                            @pick.S_23<br />@if (pick.R_23 > 0)
+                            {@String.Concat("(" + @pick.R_23 + ")");
+                        }
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-info mybutton" @onclick="()=>GoToGrid(pick.S_Row,24)">
+                            @pick.S_24<br />@if (pick.R_24 > 0)
+                            {@String.Concat("(" + @pick.R_24 + ")");
+                        }
+                        </button>
+                    </td>
+                </tr>
+            }
+            <tr class="zettelrow">
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(), 9)">
+                        @sum09<br />@if (sumR09 > 0)
+                                        {@String.Concat("(" + @sumR09 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),10)">
+                        @sum10<br />@if (sumR10 > 0)
+                                        {@String.Concat("(" + @sumR10 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),11)">
+                        @sum11<br />@if (sumR11 > 0)
+                                        {@String.Concat("(" + @sumR11 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn typerow mr-3">Total</button>
+                </td>
+
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),12)">
+                        @sum12<br />@if (sumR12 > 0)
+                                        {@String.Concat("(" + @sumR12 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),13)">
+                        @sum13<br />@if (sumR13 > 0)
+                                        {@String.Concat("(" + @sumR13 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),14)">
+                        @sum14<br />@if (sumR14 > 0)
+                                        {@String.Concat("(" + @sumR14 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),15)">
+                        @sum15<br />@if (sumR15 > 0)
+                                        {@String.Concat("(" + @sumR15 + ")");
+                                    }
+                    </button>
+                </td>
+
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),21)">
+                        @sum21<br />@if (sumR21 > 0)
+                                        {@String.Concat("(" + @sumR21 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),22)">
+                        @sum22<br />@if (sumR22 > 0)
+                                        {@String.Concat("(" + @sumR22 + ")");
+                                    }
+                    </button>
+                </td>
+
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),23)">
+                        @sum23<br />@if (sumR23> 0)
+                                        {@String.Concat("(" + @sumR23 + ")");
+                                    }
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-dark mybutton" @onclick="()=>GoToGrid(8.ToString(),24)">
+                        @sum24<br />@if (sumR24 > 0)
+                                        {@String.Concat("(" + @sumR24 + ")");
+                                    }
+                    </button>
+                </td>
+            </tr>
+        </table>
+    }
+</div>
+
+
+@code {
+
+    List<Pickzettel_Form> PickzettelForms { get; set; }
+
+    Timer aTimer { get; set; }
+    DateTime lastUpdate;
+
+    string username = "";
+    int sum09; int sum10; int sum11; int sum12; int sum13; int sum14; int sum15;
+    int sum21; int sum22; int sum23; int sum24;
+    int sumR09; int sumR10; int sumR11; int sumR12; int sumR13; int sumR14; int sumR15;
+    int sumR21; int sumR22; int sumR23; int sumR24;
+
+    DateTime lastMouseMove { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await getWindowsUser();
+
+        try
+        {
+            PickzettelForms = await repo.GetAllPickNumbers();
+        }
+        catch (Exception e)
+        {
+
+            Logger.LogError("Error retrieving pickzettels: " + e.Message);
+            await Task.Delay(3000);
+            await updateData();
+        }
+
+
+        lastUpdate = DateTime.Now;
+
+        if (PickzettelForms != null)
+        {
+            calculateSum();
+        }
+
+        CreateTimer();
+
+    }
+    async Task getWindowsUser()
+    {
+        var authstate = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        username = user.Identity.Name;
+    }
+
+    void CreateTimer()
+    {
+        // Create a timer and set a two second interval.
+        aTimer = new System.Timers.Timer();
+        aTimer.Interval = 600000;
+
+        // Hook up the Elapsed event for the timer.
+        aTimer.Elapsed += OnTimedEvent;
+
+        // Have the timer fire repeated events (true is the default)
+        aTimer.AutoReset = true;
+
+        // Start the timer
+        aTimer.Enabled = true;
+    }
+
+    async void OnTimedEvent(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        var diffInSeconds = (DateTime.Now - lastMouseMove).TotalSeconds;
+
+        if (diffInSeconds > 180)
+        {
+            await updateData();
+        }
+    }
+
+    void GoToGrid(string row, int col)
+    {
+        int Irow = int.Parse(row);
+        NavigationManager.NavigateTo($"data/{Irow}/{col}");
+    }
+
+    void calculateSum()
+    {
+        foreach (Pickzettel_Form item in PickzettelForms)
+        {
+            if (item.S_09 != null) { sum09 = sum09 + (int)item.S_09; };
+            if (item.S_10 != null) { sum10 = sum10 + (int)item.S_10; };
+            if (item.S_11 != null) { sum11 = sum11 + (int)item.S_11; };
+
+            if (item.S_12 != null) { sum12 = sum12 + (int)item.S_12; };
+            if (item.S_13 != null) { sum13 = sum13 + (int)item.S_13; };
+            if (item.S_14 != null) { sum14 = sum14 + (int)item.S_14; };
+            if (item.S_15 != null) { sum15 = sum15 + (int)item.S_15; };
+
+            if (item.S_21 != null) { sum21 = sum21 + (int)item.S_21; };
+            if (item.S_22 != null) { sum22 = sum22 + (int)item.S_22; };
+            if (item.S_23 != null) { sum23 = sum23 + (int)item.S_23; };
+            if (item.S_24 != null) { sum24 = sum24 + (int)item.S_24; };
+            // -----
+            if (item.R_09 != null) { sumR09 = sumR09 + (int)item.R_09; };
+            if (item.R_10 != null) { sumR10 = sumR10 + (int)item.R_10; };
+            if (item.R_11 != null) { sumR11 = sumR11 + (int)item.R_11; };
+
+            if (item.R_12 != null) { sumR12 = sumR12 + (int)item.R_12; };
+            if (item.R_13 != null) { sumR13 = sumR13 + (int)item.R_13; };
+            if (item.R_14 != null) { sumR14 = sumR14 + (int)item.R_14; };
+            if (item.R_15 != null) { sumR15 = sumR15 + (int)item.R_15; };
+
+            if (item.R_21 != null) { sumR21 = sumR21 + (int)item.R_21; };
+            if (item.R_22 != null) { sumR22 = sumR22 + (int)item.R_22; };
+            if (item.R_23 != null) { sumR23 = sumR23 + (int)item.R_23; };
+            if (item.R_24 != null) { sumR24 = sumR24 + (int)item.R_24; };
+
+        }
+
+    }
+    async Task updateData()
+    {
+        try
+        {
+            await JSRuntime.InvokeAsync<bool>("blazorReload");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError("Error reloading pickzettels: " + e.Message);
+        }
+    }
+
+    void FollowMouse(MouseEventArgs e)
+    {
+        lastMouseMove = DateTime.Now;
+        // Logger.LogWarning(lastMouseMove.ToString());
+    }
+
+    void IDisposable.Dispose()
+    {
+        if (aTimer != null)
+        {
+            aTimer.Dispose();
+        }
+    }
+
+
+}

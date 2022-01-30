@@ -1,0 +1,489 @@
+﻿@page "/data/{itemRow:int}/{itemCol:int}"
+
+@using Pickzettel.Services
+@using Pickzettel.Data
+@using Pickzettel.Models
+@using System.Linq;
+@using System.Threading.Tasks
+@using System.Diagnostics
+@using System.IO
+
+@inject PdfGenerator generator
+@inject IPickzettelRepository repo
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+@inject IJSRuntime JSRuntime
+
+<nav class="navbar navbar-light justify-content-between" style="background-color: #e3f2fd;">
+    <button type="button" class="btn btn-danger btn-lg" @onclick="()=>goBackToZettel()"><RadzenIcon Icon="arrow_back" /></button>
+
+    <p class="font-italic font-weight-bold m-0 p-0 mr-4" style="display:inline-block">@itemCol-@ApplicationValues.GetColumnName(itemCol) / @itemRow-@ApplicationValues.GetRowName(itemRow)</p>
+
+    <div>
+        @if (itemCol >= 12) //itemCol != 10 && itemCol != 11
+        {
+            <button type="button" class="btn btn-success btn-lg printbutton mr-4" @onclick="handlePrint">Drucken</button>
+        }
+        <button type="button" class="btn btn-secondary btn-lg printbutton mr-4" @onclick="handleExport">Export</button>
+    </div>
+    <form class="form-inline">
+        <input class="form-control mr-sm-2" type="search" placeholder="Ähnliche Artikel" aria-label="Search" @bind-value="SearchTerm" @bind-value:event="oninput"
+               @ref="textInput" @onkeydown="KeyDown" @onkeyup="KeyUp">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="button" @onclick="OnSearchClick">Search</button>
+    </form>
+    <div>
+        @if (HDatasToDisplay is not null)
+        {
+            <p class="font-italic font-weight-bold m-0 p-0 mr-4" style="display:inline-block">Last Update: <span class="text-danger"> @lastUpdate.ToString("HH:mm:ss")</span></p>
+        }
+        <a class="navbar-brand inactiveLink" href="#">
+            <img src="images/tire.jpg" class="logo-image img-fluid" alt="">
+        </a>
+    </div>
+
+</nav>
+
+@if (isProcessing)
+{
+    <div class="mycircle">
+
+        <div class="modal-content">
+            <div class="mx-auto">
+                <h3 class="font-weight-bold text-center">Processing..</h3>
+            </div>
+            <div class="mx-auto">
+                <MatProgressCircle Indeterminate="true" FourColored="true" Size="MatProgressCircleSize.Large" Class="thecircle" />
+            </div>
+
+        </div>
+    </div>
+
+}
+@if (showResultDialog)
+{
+    <div id="myModal" class="resultmodal">
+
+        <div class="outer-content">
+            <!-- Modal content -->
+            <div class="result-content">
+
+                @if (ResultMessage.FailedSelections.Any())
+                {
+                    @foreach (string check in ResultMessage.FailedSelections)
+                    {
+                        <p class="ml-4 font-weight-bold mb-4">
+                            <span class="material-icons">
+                                error
+                            </span>@check
+                        </p>
+                    }
+                }
+                @if (ResultMessage.SuccessSelections.Any())
+                {
+                    @if (!ResultMessage.FailedSelections.Any())
+                    {
+                        <p class="ml-4 font-weight-bold mb-4">Alle ausgewählten Belege wurden gedruckt</p>
+                    }
+
+                    @foreach (string b in ResultMessage.SuccessSelections)
+                    {
+                        <p class="ml-3">
+                            <span class="material-icons successicon">
+                                check
+                            </span>@b
+                        </p>
+                    }
+
+                }
+            </div>
+            <div class="text-center mt-5">
+                <button class="btn btn-danger" @onclick="goBackToZettel">Close</button>
+            </div>
+        </div>
+
+    </div>
+}
+
+@if (HDatasToDisplay == null)
+{
+
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @if (HDatasToDisplay.Count() == 0)
+    {
+        <p><em>No Records to Display...</em></p>
+    }
+    else
+    {
+        <div class="row mt-3">
+            @if (showMessage)
+            {
+                <div class="font-italic font-weight-bold alert @alertClass mb-0 mt-0 ml-5 p-0" role="alert">
+                    @message
+                </div>
+            }
+        </div>
+        <div class="mygrid ml-3 mr-5">
+            <RadzenGrid AllowPaging="false" PageSize="40"
+                        AllowSorting="true" Data="@HDatasToDisplay" TItem="Pickzettel_HData" ColumnWidth="80px" AllowColumnResize="true"
+                        RowSelect="@getCurrent" AllowFiltering="true" FilterMode="FilterMode.Simple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" RowClick="@rowClicked">
+
+                <Columns>
+                    <RadzenGridColumn TItem="Pickzettel_HData" Title="N" Width="40px" Sortable="false">
+                        <Template Context="data">
+                            <RadzenLabel Text="@((HDatasToDisplay.IndexOf(data) + 1).ToString())" Placeholder="LP" />
+                        </Template>
+                    </RadzenGridColumn>
+                    <RadzenGridColumn TItem="Pickzettel_HData" Width="50px" Sortable="false" Filterable="true">
+                        <HeaderTemplate>
+                            <RadzenCheckBox TValue="bool" @bind-Value=@isAllChecked Change=@(args => OnCheckedAll()) />
+                        </HeaderTemplate>
+                        <Template Context="data">
+                            <RadzenCheckBox @bind-Value=@data.isChecked TValue="bool" Change=@(args => OnChecked(data)) />
+                        </Template>
+                    </RadzenGridColumn>
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="BelID" Title="BelID" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="VorID" Title="VorID" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="BelegJahr" Title="Jahr" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="Belegnummer" Title="BelNo" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="AuftragNummer" Title="Auftrag" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="Belegdatum" Title="BelDt">
+                        <Template Context="data">
+                            @String.Format("{0:d}", data.Belegdatum)
+                        </Template>
+                    </RadzenGridColumn>
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="Matchcode" Title="MatchCd" Width="120px" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="Referenznummer" Title="RefNo" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="A0Empfaenger" Title="Empf" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="A0Matchcode" Title="MatchCd" Width="200px" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="Versand" Title="Vers" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="USER_HTKPaketnummern" Title="PktN" />
+                    <RadzenGridColumn TItem="Pickzettel_HData" Property="USER_PickGedruckt" Title="UPick" />
+
+                </Columns>
+            </RadzenGrid>
+        </div>
+        <br />
+
+
+        @if (selectedRow != null)
+        {
+
+            <div class="row selectedGrid">
+                <div class="col-sm-8">
+                    <RadzenGrid AllowFiltering="false" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Advanced" AllowPaging="false" PageSize="5"
+                                AllowSorting="false" Data="@selectedArtikel" TItem="Pickzettel_IData" ColumnWidth="80px" AllowColumnResize="true"
+                                LogicalFilterOperator="LogicalFilterOperator.Or">
+                        <Columns>
+
+                            <RadzenGridColumn TItem="Pickzettel_IData" Title="N" Filterable="false" Width="40px" Sortable="false">
+                                <Template Context="data">
+                                    <RadzenLabel Text="@((selectedArtikel.IndexOf(data) + 1).ToString())" Placeholder="LP" />
+                                </Template>
+                            </RadzenGridColumn>
+                            <RadzenGridColumn TItem="Pickzettel_IData" Property="Artikelnummer" Title="Artikel" />
+                            <RadzenGridColumn TItem="Pickzettel_IData" Property="Bezeichnung1" Title="Bezeichnung" Width="200px" />
+                            <RadzenGridColumn TItem="Pickzettel_IData" Property="Menge" Title="Menge">
+                                <Template Context="data">
+                                    @String.Format("{0:0}", data.Menge)
+                                </Template>
+                            </RadzenGridColumn>
+                            <RadzenGridColumn TItem="Pickzettel_IData" Property="GGBestellt" Title="Bestellt">
+                                <Template Context="data">
+                                    @if (itemCol==22 && data.GGBestellt > data.GGGeliefert)
+                                    {
+                                        <span style='color:red'>@String.Format("{0:0}", data.GGBestellt)</span>
+                                    }
+                                    else
+                                    {
+                                        @String.Format("{0:0}", data.GGBestellt)
+                                    }
+                                </Template>
+                            </RadzenGridColumn>
+                            <RadzenGridColumn TItem="Pickzettel_IData" Property="GGGeliefert" Title="Geliefert">
+                                <Template Context="data">
+                                    @if (itemCol==22 && data.GGBestellt > data.GGGeliefert)
+                                    {
+                                        <span style='color:red'>@String.Format("{0:0}", data.GGGeliefert)</span>
+                                    }
+                                    else
+                                    {
+                                        @String.Format("{0:0}", data.GGGeliefert)
+                                    }
+                                </Template>
+                            </RadzenGridColumn>
+                            <RadzenGridColumn TItem="Pickzettel_IData" Property="GGBerechnet" Title="Berechnet">
+                                <Template Context="data">
+                                    @String.Format("{0:0}", data.GGBerechnet)
+                                </Template>
+                            </RadzenGridColumn>
+                        </Columns>
+                    </RadzenGrid>
+                </div>
+
+            </div>
+        }
+    }
+
+}
+
+
+
+@code {
+
+    //Parameters
+    [Parameter]
+    public int itemRow { get; set; }
+    [Parameter]
+    public int itemCol { get; set; }
+
+    //DATA
+    List<PrintHelperDTO> selectedItemsToPrint = new List<PrintHelperDTO>();
+    Pickzettel_HData selectedRow { get; set; }
+    List<Pickzettel_HData> headDatas { get; set; }
+    List<Pickzettel_HData> HDatasToDisplay { get; set; }
+    List<Pickzettel_IData> IDatas { get; set; }
+    List<Pickzettel_IData> selectedArtikel { get; set; }
+    UserPrinter UserPrinter { get; set; }
+    ResultMessageDTO ResultMessage { get; set; }
+
+    //Helpers
+    ElementReference textInput;
+    string message = "";
+    bool showMessage = false;
+    DateTime lastUpdate;
+    bool isProcessing = false;
+    bool isAllChecked = false;
+    string SearchTerm { get; set; } = "";
+    int firstIndex = -1;
+    bool isControlPressed = false;
+    string username = "";
+    string alertClass = "alert-danger";
+    bool showResultDialog = false;
+    bool showExportMessage = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await getWindowsUser();
+
+        if (itemRow == 8)
+        {
+            headDatas = await repo.GetSumHeaderData(itemCol);
+            IDatas = await repo.GetSumIData(itemCol);
+        }
+        else
+        {
+            headDatas = await repo.GetHeaderDataBySelection(itemCol, itemRow);
+            IDatas = await repo.GetIDataBySelection(itemCol, itemRow);
+        }
+        HDatasToDisplay = headDatas;
+        lastUpdate = DateTime.Now;
+        getCurrent(headDatas.FirstOrDefault());
+    }
+
+    async Task getWindowsUser()
+    {
+        var authstate = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        username = user.Identity.Name;
+
+        UserPrinter = (await repo.GetUserPrintersByUsername(username)).FirstOrDefault();
+    }
+
+    void getCurrent(Pickzettel_HData selected)
+    {
+
+        if (selected is not null)
+        {
+            selectedArtikel = IDatas.FindAll(i => i.BelID == selected.BelID);
+            selectedRow = selected;
+        }
+        //To remove messages..
+        showMessage = false;
+        alertClass = "alert-danger";
+
+    }
+
+    async Task handlePrint()
+    {
+        foreach (Pickzettel_HData data in headDatas)
+        {
+            if (data.isChecked)
+            {
+
+                selectedItemsToPrint.Add(new PrintHelperDTO
+                {
+                    HData = data,
+                    IDatas = IDatas.FindAll(i => i.BelID == data.BelID)
+                });
+            }
+        }
+
+        if (selectedItemsToPrint is null || selectedItemsToPrint.Count() == 0)
+        {
+            message = "Es wurde kein Element ausgewählt..";
+            showMessage = true;
+        }
+        else if (UserPrinter is null)
+        {
+            message = "Sie haben keine Berechtigung zum Ausführen dieser Aktion";
+            showMessage = true;
+        }
+        else
+        {
+            isProcessing = true;
+            await Task.Delay(1);
+            if (UserPrinter.isProduction == 1)
+            {
+                ResultMessage = await Task.Run(() => generator.handlePrintRequest(selectedItemsToPrint, itemRow, itemCol, username, UserPrinter.Name1));
+            }
+            else
+            {
+                ResultMessage = await Task.Run(() => generator.handleTestPrintRequest(selectedItemsToPrint, itemRow, itemCol, username, UserPrinter.Name1));
+            }
+
+            isProcessing = false;
+            showResultDialog = true;
+
+
+            // IF TEST, OPEN in BROWSER and delete the file
+            if (UserPrinter.Name1.Equals("PDF"))
+            {
+                await JSRuntime.InvokeAsync<object>("blazorOpen", $"./{ResultMessage.FileName}", "_blank");
+            }
+        }
+
+    }
+    async Task handleExport()
+    {
+
+        foreach (Pickzettel_HData data in headDatas)
+        {
+            if (data.isChecked)
+            {
+
+                selectedItemsToPrint.Add(new PrintHelperDTO
+                {
+                    HData = data,
+                    IDatas = IDatas.FindAll(i => i.BelID == data.BelID)
+                });
+            }
+        }
+
+        if (selectedItemsToPrint is null || selectedItemsToPrint.Count() == 0)
+        {
+            showMessage = true;
+        }
+        else if (UserPrinter is null)
+        {
+            message = "Sie haben keine Berechtigung zum Ausführen dieser Aktion";
+            showMessage = true;
+        }
+        else
+        {
+            isProcessing = true;
+            await Task.Delay(1);
+            ResultMessage = await Task.Run(() => generator.handleExportRequest(selectedItemsToPrint, itemRow, itemCol, username, UserPrinter.Name1));
+            isProcessing = false;
+            showResultDialog = true;
+            showExportMessage = true;
+
+
+            // IF TEST, OPEN in BROWSER
+            if (UserPrinter.Name1.Equals("PDF"))
+            {
+                await JSRuntime.InvokeAsync<object>("blazorOpen", $"./{ResultMessage.FileName}", "_blank");
+
+            }
+
+        }
+
+    }
+    void OnChecked(Pickzettel_HData data)
+    {
+        if (data.isChecked)
+        {
+            if (isControlPressed)
+            {
+                if (firstIndex != -1)
+                {
+                    for (int i = firstIndex + 1; i < HDatasToDisplay.IndexOf(data); i++)
+                    {
+                        HDatasToDisplay.ElementAt(i).isChecked = true;
+                    }
+                }
+                else
+                {
+                    firstIndex = HDatasToDisplay.IndexOf(data);
+                }
+            }
+        }
+
+    }
+    void OnCheckedAll()
+    {
+
+        foreach (Pickzettel_HData data in HDatasToDisplay)
+        {
+            data.isChecked = isAllChecked;
+        }
+    }
+
+    void goBackToZettel()
+    {
+        NavigationManager.NavigateTo("", true);
+    }
+
+    void KeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Control")
+        {
+            isControlPressed = true;
+        }
+    }
+
+    void KeyUp(KeyboardEventArgs args)
+    {
+        if (args.Key == "Control")
+        {
+            isControlPressed = false;
+            firstIndex = -1;
+        }
+
+    }
+    void rowClicked(Pickzettel_HData data)
+    {
+        textInput.FocusAsync();
+    }
+
+    void OnSearchClick()
+    {
+        if (SearchTerm != "")
+        {
+            var filtered = IDatas
+           .Where(i => (i.Artikelnummer?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+           .Select(i => i.BelID)
+           .Distinct();
+
+            List<Pickzettel_HData> filteredHDatas = new List<Pickzettel_HData>();
+
+            foreach (var i in filtered)
+            {
+                Pickzettel_HData data = headDatas.FirstOrDefault(h => h.BelID == i);
+                if (data is not null)
+                {
+                    filteredHDatas.Add(data);
+                }
+            }
+            HDatasToDisplay = filteredHDatas;
+        }
+        else
+        {
+            HDatasToDisplay = headDatas;
+        }
+
+    }
+
+}
